@@ -64,6 +64,9 @@ use app\libraries\FileUtils;
  * @method void setCoursePath(string $course_path)
  * @method void setSubmittyPath(string $submitty_path)
  * @method void setDebug(bool $debug)
+ * @method string getQueueMessage()
+ * @method string getSubmittyInstallPath()
+ * @method bool isDuckBannerEnabled()
  */
 
 class Config extends AbstractModel {
@@ -221,6 +224,12 @@ class Config extends AbstractModel {
     protected $queue_enabled;
     /** @prop @var bool */
     protected $queue_contact_info;
+    /** @prop @var string */
+    protected $queue_message;
+    /** @prop @var string */
+    protected $submitty_install_path;
+    /** @prop @var bool */
+    protected $duck_banner_enabled;
 
     /** @prop-read @var array */
     protected $feature_flags = [];
@@ -266,11 +275,10 @@ class Config extends AbstractModel {
             throw new ConfigException("Could not find submitty config: {$this->config_path}/submitty.json");
         }
 
-        $this->submitty_log_path = $submitty_json['site_log_path'];
         $this->log_exceptions = true;
 
         $this->base_url = $submitty_json['submission_url'];
-        $this->submitty_path = $submitty_json['submitty_data_dir'];
+        $this->duck_banner_enabled = $submitty_json['duck_special_effects'] === true;
 
         if (isset($submitty_json['timezone'])) {
             if (!in_array($submitty_json['timezone'], \DateTimeZone::listIdentifiers())) {
@@ -315,10 +323,14 @@ class Config extends AbstractModel {
             $this->vcs_url = rtrim($submitty_json['vcs_url'], '/') . '/';
         }
 
+        $this->submitty_path = $submitty_json['submitty_data_dir'];
+        $this->submitty_log_path = $submitty_json['site_log_path'];
+        $this->submitty_install_path = $submitty_json['submitty_install_dir'];
+
         $this->cgi_tmp_path = FileUtils::joinPaths($this->submitty_path, "tmp", "cgi");
 
         // Check that the paths from the config file are valid
-        foreach (array('submitty_path', 'submitty_log_path') as $path) {
+        foreach (array('submitty_path', 'submitty_log_path', 'submitty_install_path') as $path) {
             if (!is_dir($this->$path)) {
                 throw new ConfigException("Invalid path for setting {$path}: {$this->$path}");
             }
@@ -400,7 +412,7 @@ class Config extends AbstractModel {
             'zero_rubric_grades', 'upload_message', 'display_rainbow_grades_summary',
             'display_custom_message', 'room_seating_gradeable_id', 'course_email', 'vcs_base_url', 'vcs_type',
             'private_repository', 'forum_enabled', 'forum_create_thread_message', 'regrade_enabled', 'seating_only_for_instructor',
-            'regrade_message', 'auto_rainbow_grades', 'queue_enabled', 'queue_contact_info'
+            'regrade_message', 'auto_rainbow_grades', 'queue_enabled', 'queue_contact_info', 'queue_message'
         ];
         $this->setConfigValues($this->course_json, 'course_details', $array);
 
