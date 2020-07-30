@@ -1367,6 +1367,9 @@ div.full_height {
     margin-right:5%;
     border-radius:4px;
 }
+.hidden {
+    visibility: hidden;
+}
 
 .tooltip .tooltiptext {
     visibility: hidden;
